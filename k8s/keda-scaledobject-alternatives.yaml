@@ -1,0 +1,43 @@
+# Alternative KEDA triggers to experiment with in the lab. Apply ONE
+# ScaledObject per Deployment at a time (delete keda-scaledobject.yaml first,
+# or point these at a different target) — otherwise the HPAs conflict.
+#
+# ---------------------------------------------------------------------------
+# CPU-based scaling (no Prometheus required). Good first experiment.
+# ---------------------------------------------------------------------------
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: keda-lab-cpu
+  namespace: keda-lab
+spec:
+  scaleTargetRef:
+    name: keda-lab
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "60"
+---
+# ---------------------------------------------------------------------------
+# Time-based (cron) scaling: pre-warm replicas during a busy window.
+# ---------------------------------------------------------------------------
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: keda-lab-cron
+  namespace: keda-lab
+spec:
+  scaleTargetRef:
+    name: keda-lab
+  minReplicaCount: 0
+  maxReplicaCount: 10
+  triggers:
+    - type: cron
+      metadata:
+        timezone: America/Bogota
+        start: 0 8 * * 1-5
+        end: 0 18 * * 1-5
+        desiredReplicas: "3"

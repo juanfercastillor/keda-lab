@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: keda-lab
+
+server:
+  port: 8080
+
+# Tunables for the lab: how expensive each job is to process and how often
+# each replica polls the queue. Lower the cost / interval to drain faster.
+keda-lab:
+  processing-cost-millis: 750
+  poll-interval-millis: 200
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: keda-lab
+  prometheus:
+    metrics:
+      export:
+        enabled: true
