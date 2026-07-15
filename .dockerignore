@@ -1,0 +1,9 @@
+.git
+.gradle
+build
+**/build
+*.log
+.idea
+*.iml
+k8s
+README.md

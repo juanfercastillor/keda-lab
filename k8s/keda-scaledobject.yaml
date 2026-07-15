@@ -1,0 +1,31 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: keda-lab
+  namespace: keda-lab
+  labels:
+    app.kubernetes.io/name: keda-lab
+spec:
+  scaleTargetRef:
+    name: keda-lab
+  # Scale to zero when the backlog is empty; burst up under load.
+  minReplicaCount: 0
+  maxReplicaCount: 10
+  # Grace period before scaling back down after the backlog clears.
+  cooldownPeriod: 30
+  pollingInterval: 5
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 30
+  triggers:
+    # Primary trigger: scale on the queue depth published by the app and
+    # scraped into Prometheus (keda_lab_pending_jobs gauge).
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-server.monitoring.svc.cluster.local:80
+        metricName: keda_lab_pending_jobs
+        # Aim for ~5 pending jobs per replica.
+        threshold: "5"
+        query: sum(keda_lab_pending_jobs{application="keda-lab"})
